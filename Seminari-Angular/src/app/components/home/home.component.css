@@ -1,8 +1,9 @@
 .hero-container {
-  position: relative;
-  width: 100%;
-  /* 74px es aproximadamente la altura de tu Navbar. Esto hace que la imagen ocupe el resto de la pantalla sin hacer scroll */
-  height: calc(100vh - 74px); 
+  position: absolute; /* Saca la imagen del flujo normal */
+  top: 0;             /* La pega al techo de la pantalla */
+  left: 0;            /* La pega al borde izquierdo */
+  width: 100vw;       /* 100% del ancho de la ventana */
+  height: 100vh;      /* 100% del alto de la ventana */
   overflow: hidden;
 }
 
