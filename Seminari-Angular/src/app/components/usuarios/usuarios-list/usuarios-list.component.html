@@ -1,1 +1,17 @@
-<p>usuario-list works!</p>
+<div class="contenedor-usuarios">
+  <h2>Usuarios</h2>
+
+  <div class="grid-usuarios">
+    @for (user of usuarios; track user.id || user.id) {
+      <div class="usuario-card">
+        <h3>{{ user.fullName }}</h3>
+        <p class="role-badge" [ngClass]="user.role">{{ user.role | titlecase }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Ubicación:</strong> {{ user.location }}</p>
+        <p><strong>Años de exp:</strong> {{ user.yearsOfExperience }}</p>
+      </div>
+    } @empty {
+      <p class="cargando">Buscando usuarios en la base de datos o la colección está vacía...</p>
+    }
+  </div>
+</div>

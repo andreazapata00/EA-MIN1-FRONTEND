@@ -1,1 +1,66 @@
-<p>In progress...</p>
+<div class="perfil-container">
+  
+  <div class="perfil-header">
+    <h2>Mi Perfil</h2>
+    <p>Bienvenido a tu panel de control de Relevo.</p>
+  </div>
+
+  <hr class="divider">
+
+  <div class="simulador-section">
+    <h3> Simulador: Recibir nueva solicitud</h3>
+    <p class="subtitle">Escribe un mensaje como si fueras un inversor interesado en tu empresa.</p>
+    
+    <form (submit)="simularEnvio($event)" class="form-simulador">
+      <textarea 
+        [(ngModel)]="nuevoMensaje" 
+        name="mensaje" 
+        rows="3" 
+        placeholder="Ej: Hola, me gustaría recibir el dossier financiero..." 
+        required></textarea>
+      
+      <button type="submit" class="btn-enviar">Enviar Solicitud</button>
+    </form>
+  </div>
+
+  <div class="solicitudes-section">
+    <h3> Bandeja de Solicitudes</h3>
+
+    <div class="solicitudes-grid">
+      @for (solicitud of solicitudes; track solicitud.id) {
+        <div class="solicitud-card">
+          
+          <div class="card-header">
+            <span class="badge" [class]="solicitud.status">
+              {{ solicitud.status | titlecase }}
+            </span>
+            <span class="ref">Empresa Ref: {{ solicitud.oportunidadId }}</span>
+          </div>
+          
+          <div class="card-body">
+            <p class="mensaje">"{{ solicitud.message }}"</p>
+            <p class="inversor">👤 Inversor: {{ solicitud.userId }}</p>
+          </div>
+
+          <div class="card-footer">
+            @if (solicitud.status === 'pending') {
+              <button class="btn-aceptar" (click)="cambiarEstado(solicitud.id, 'accepted')">✔ Aceptar</button>
+              <button class="btn-rechazar" (click)="cambiarEstado(solicitud.id, 'rejected')">✖ Rechazar</button>
+            }
+            
+            @if (solicitud.status !== 'pending') {
+              <button class="btn-eliminar" (click)="eliminar(solicitud.id)">🗑️ Eliminar registro</button>
+            }
+          </div>
+
+        </div>
+      } @empty {
+        <div class="empty-state">
+          <p>No tienes ninguna solicitud por el momento. ¡Pronto llegarán!</p>
+        </div>
+      }
+    </div>
+  </div>
+
+</div>
+
