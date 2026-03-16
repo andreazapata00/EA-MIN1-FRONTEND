@@ -1,9 +1,10 @@
 export interface SolicitudAcceso {
-  id?: string;
-  oportunidadId: string;
-  userId: string;
+  _id?: string;
+  opportunity: string;
+  interestedUser: string;
+  owner: string;
   message: string;
-  status: 'pending' | 'accepted' | 'rejected';
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
 }
 
 export interface Conversacion {

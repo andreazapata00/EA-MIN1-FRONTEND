@@ -2,7 +2,7 @@
   <h2>Oportunidades</h2>
 
   <div class="grid-oportunidades">
-    @for (oportunidad of oportunidades; track oportunidad.id || oportunidad['id']) {
+    @for (oportunidad of oportunidades; track $index) {
       <div class="oportunidad-card">
         
         <div class="card-header">

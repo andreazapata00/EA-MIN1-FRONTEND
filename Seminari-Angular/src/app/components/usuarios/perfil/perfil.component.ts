@@ -1,86 +1,70 @@
-import { Component,inject, OnInit} from '@angular/core';
-import { CommonModule } from '@angular/common'; 
+import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { SolicitudAccesoService } from '../../../services/solicitud-acceso.service';
 import { SolicitudAcceso } from '../../../models/comunicacion.model';
-import { FormsModule } from '@angular/forms';
-
 
 @Component({
   selector: 'app-perfil',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './perfil.component.html',
-  styleUrl: './perfil.component.css',
+  styleUrls: ['./perfil.component.css']
 })
-export class PerfilUsuario implements OnInit {
+export class PerfilComponent implements OnInit {
   private solicitudService = inject(SolicitudAccesoService);
-  solicitudes: SolicitudAcceso[] = [];
-  nuevoMensaje: string = '';
+
+  // --- DATOS DEL FORMULARIO ---
+  mensajeNuevo: string = '';
+  
+  // IDs DE PRUEBA (Sustituye por IDs reales de tu MongoDB de 24 caracteres)
+  miUserId = "65f1a2b3c4d5e6f7a8b9c034";
+  oportunidadIdTest = "65f1a2b3c4d5e6f7a8b9c012";
+  ownerIdTest = "65f1a2b3c4d5e6f7a8b9c056";
+
+  // --- LISTA DE SOLICITUDES ---
+  misSolicitudes: SolicitudAcceso[] = [];
 
   ngOnInit() {
     this.cargarSolicitudes();
   }
 
-  // 1. READ: Nos suscribimos para recibir los datos de MongoDB
+  // L - LEER (Read)
   cargarSolicitudes() {
-    this.solicitudService.getTodasLasSolicitudes().subscribe({
-      next: (datosDelServidor) => {
-        this.solicitudes = datosDelServidor;
-      },
-      error: (error) => {
-        console.error('Error al cargar solicitudes:', error);
-      }
+    this.solicitudService.getSolicitudesPorUsuario(this.miUserId).subscribe({
+      next: (data) => this.misSolicitudes = data,
+      error: (err) => console.error('Error al cargar lista:', err)
     });
   }
 
-  // 2. UPDATE: Mandamos el nuevo estado y recargamos la lista al terminar
-  cambiarEstado(id: string | undefined, estado: 'pending' | 'accepted' | 'rejected') {
-    if (!id) return;
-    
-    this.solicitudService.actualizarEstado(id, estado).subscribe({
-      next: () => {
-        this.cargarSolicitudes(); // Recargamos para ver los cambios
-      },
-      error: (error) => {
-        console.error('Error al actualizar:', error);
-      }
-    });
-  }
+  // C - CREAR (Create)
+  enviarSolicitud() {
+  if (!this.mensajeNuevo.trim()) return;
 
-  // 3. DELETE: Mandamos borrar y recargamos la lista al terminar
-  eliminar(id: string | undefined) {
-    if (!id) return;
-    
-    this.solicitudService.eliminarSolicitud(id).subscribe({
-      next: () => {
-        this.cargarSolicitudes(); // Recargamos la lista limpia
-      },
-      error: (error) => {
-        console.error('Error al eliminar:', error);
-      }
-    });
-  }
+  // Vamos a usar un ID de oportunidad real que YA CARGÓ en tu lista
+  // Esto asegura que la oportunidad existe.
+  const data: SolicitudAcceso = {
+    opportunity: this.misSolicitudes[0]?.opportunity || "65f1a2b3c4d5e6f7a8b9c012", 
+    interestedUser: "65f1a2b3c4d5e6f7a8b9c034", 
+    owner: "65f1a2b3c4d5e6f7a8b9c056", 
+    message: this.mensajeNuevo,
+    status: 'PENDING'
+  };
 
-  // 4. CREATE: Enviamos el POST al backend
-  simularEnvio(event: Event) {
-    event.preventDefault();
-    if (!this.nuevoMensaje.trim()) return;
+  console.log("Datos enviados al servidor:", data);
 
-    // Preparamos el objeto sin ID (MongoDB crea el _id automáticamente)
-    const nuevaSolicitud = {
-      oportunidadId: 'op-' + Math.floor(Math.random() * 1000), 
-      userId: 'inversor-demo',
-      message: this.nuevoMensaje
-    };
+  this.solicitudService.crearSolicitud(data).subscribe({
+    next: (res) => {
+      this.mensajeNuevo = '';
+      this.cargarSolicitudes();
+      alert('¡Éxito!');
+    },
+    error: (err) => {
+      // AQUÍ ESTÁ EL TRUCO: Accedemos al mensaje de error del backend
+      console.error("Detalle técnico del error:", err.error); 
+      alert("Error del Servidor: " + JSON.stringify(err.error));
+    }
+  });
+}
 
-    this.solicitudService.crearSolicitud(nuevaSolicitud).subscribe({
-      next: () => {
-        this.nuevoMensaje = ''; // Limpiamos el formulario
-        this.cargarSolicitudes(); // Recargamos para ver el nuevo mensaje
-      },
-      error: (error) => {
-        console.error('Error al crear la solicitud:', error);
-      }
-    });
-  }
 }
