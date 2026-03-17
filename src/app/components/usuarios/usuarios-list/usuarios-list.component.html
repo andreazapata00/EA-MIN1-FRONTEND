@@ -30,13 +30,7 @@
           
           <div class="info-item">
             <span class="icono">💼</span>
-            <span>
-              @if (user.yearsOfExperience) {
-                {{ user.yearsOfExperience }} años de experiencia
-              } @else {
-                Experiencia no especificada
-              }
-            </span>
+            <span>{{ user.professionalBackground || 'Experiencia no especificada' }}</span>
           </div>
         </div>
 

@@ -1,0 +1,41 @@
+:host {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: #94a3b8;
+  font-size: 20px;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 12px 10px 40px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  font-size: 0.875rem;
+  color: #1e293b;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: #136dec;
+  box-shadow: 0 0 0 3px rgba(19, 109, 236, 0.1);
+  background: #fff;
+}
+
+.search-input::placeholder {
+  color: #94a3b8;
+}
