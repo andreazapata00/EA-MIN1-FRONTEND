@@ -1,6 +1,6 @@
 export interface SolicitudAcceso {
   _id?: string;
-  opportunity: string;
+  oferta: string;
   interestedUser: string;
   owner: string;
   message: string;

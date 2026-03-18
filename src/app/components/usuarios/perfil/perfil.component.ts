@@ -19,7 +19,7 @@ export class PerfilComponent implements OnInit {
   
   // IDs DE PRUEBA (Sustituye por IDs reales de tu MongoDB de 24 caracteres)
   miUserId = "65f1a2b3c4d5e6f7a8b9c034";
-  oportunidadIdTest = "65f1a2b3c4d5e6f7a8b9c012";
+  ofertaIdTest = "65f1a2b3c4d5e6f7a8b9c012";
   ownerIdTest = "65f1a2b3c4d5e6f7a8b9c056";
 
   // --- LISTA DE SOLICITUDES ---
@@ -41,10 +41,10 @@ export class PerfilComponent implements OnInit {
   enviarSolicitud() {
   if (!this.mensajeNuevo.trim()) return;
 
-  // Vamos a usar un ID de oportunidad real que YA CARGÓ en tu lista
-  // Esto asegura que la oportunidad existe.
+  // Vamos a usar un ID de oferta real que YA CARGÓ en tu lista
+  // Esto asegura que la oferta existe.
   const data: SolicitudAcceso = {
-    opportunity: this.misSolicitudes[0]?.opportunity || "65f1a2b3c4d5e6f7a8b9c012", 
+    oferta: this.misSolicitudes[0]?.oferta || "65f1a2b3c4d5e6f7a8b9c012", 
     interestedUser: "65f1a2b3c4d5e6f7a8b9c034", 
     owner: "65f1a2b3c4d5e6f7a8b9c056", 
     message: this.mensajeNuevo,

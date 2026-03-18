@@ -1,0 +1,31 @@
+<div class="contenedor-ofertas">
+  <h2>Ofertas</h2>
+
+  <div class="grid-ofertas">
+    @for (oferta of ofertas; track $index) {
+      <div class="oferta-card">
+        
+        <div class="card-header">
+          <h3>{{ oferta.sector }} - {{ oferta.region }}</h3>
+          <span class="badge" *ngIf="oferta.employeeRange">
+            {{ oferta.employeeRange }} empleados
+          </span>
+        </div>
+
+        <div class="card-body">
+          <p class="descripcion-corta">{{ oferta.companyDescription }}</p>
+          
+          <ul class="detalles-lista">
+            <li><strong>Sector:</strong> {{ oferta.sector }}</li>
+            <li><strong>Ubicación:</strong> {{ oferta.region }}</li>
+            <li><strong>Antigüedad:</strong> {{ oferta.businessAgeYears }} años</li>
+            <li *ngIf="oferta.revenueRange"><strong>Facturación:</strong> {{ oferta.revenueRange }}</li>
+          </ul>
+        </div>
+        
+      </div>
+    } @empty {
+      <p class="cargando">No se encontraron ofertas en la base de datos.</p>
+    }
+  </div>
+</div>

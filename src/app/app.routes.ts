@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 import { Home } from './components/home/home.component';
 import { Login } from './components/usuarios/login/login.component';
-import { OportunidadListComponent } from './components/oportunidades/oportunidad-list/oportunidad-list.component';
-import { OportunidadDetalle } from './components/oportunidades/oportunidad-detalle/oportunidad-detalle.component';
+import { OfertaListComponent } from './components/ofertas/oferta-list/oferta-list.component';
+import { OfertaDetalle } from './components/ofertas/oferta-detalle/oferta-detalle.component';
 import { UsuariosListComponent } from './components/usuarios/usuarios-list/usuarios-list.component';
 import { PerfilComponent } from './components/usuarios/perfil/perfil.component';
 
@@ -22,8 +22,8 @@ export const routes: Routes = [
     children: [
       { path: '', component: Home },
       { path: 'login', component: Login },
-      { path: 'oportunidades', component: OportunidadListComponent },
-      { path: 'oportunidades/:id', component: OportunidadDetalle },
+      { path: 'ofertas', component: OfertaListComponent },
+      { path: 'ofertas/:id', component: OfertaDetalle },
       { path: 'usuarios', component: UsuariosListComponent },
       { path: 'perfil', component: PerfilComponent },
     ]

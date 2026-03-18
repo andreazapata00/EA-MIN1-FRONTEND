@@ -1,6 +1,6 @@
 export interface Documento {
   id?: string;
-  oportunidadId: string;
+  ofertaId: string;
   title: string;
   description: string;
   documentType: string;
@@ -10,7 +10,7 @@ export interface Documento {
 
 export interface Transicion {
   id?: string;
-  oportunidadId: string;
+  ofertaId: string;
   participantIds: string[];
   currentStage: string;
   notes: string;

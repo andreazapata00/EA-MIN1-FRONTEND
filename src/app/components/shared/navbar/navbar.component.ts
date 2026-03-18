@@ -17,6 +17,6 @@ export class Navbar {
 // Función directa para entrar sin formulario
   loginRapido() {
     this.authService.login();
-    this.router.navigate(['/oportunidades']);
+    this.router.navigate(['/ofertas']);
   }
 }

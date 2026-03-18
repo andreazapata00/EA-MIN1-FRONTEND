@@ -16,6 +16,6 @@ export class Login {
   iniciarSesion(event: Event) {
     event.preventDefault(); 
     this.authService.login();
-    this.router.navigate(['/oportunidades']);
+    this.router.navigate(['/ofertas']);
   }
 }

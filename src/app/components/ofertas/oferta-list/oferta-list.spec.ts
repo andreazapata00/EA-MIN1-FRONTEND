@@ -1,17 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { OfertaListComponent } from './oferta-list.component';
 
-import { OportunidadList } from './oportunidad-list';
-
-describe('OportunidadList', () => {
-  let component: OportunidadList;
-  let fixture: ComponentFixture<OportunidadList>;
+describe('OfertaListComponent', () => {
+  let component: OfertaListComponent;
+  let fixture: ComponentFixture<OfertaListComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [OportunidadList],
+      imports: [OfertaListComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(OportunidadList);
+    fixture = TestBed.createComponent(OfertaListComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
