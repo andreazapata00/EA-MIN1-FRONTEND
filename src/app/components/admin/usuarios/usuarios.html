@@ -5,7 +5,10 @@
       <p class="subtitle">Administra los roles y estados de los usuarios en la plataforma</p>
     </div>
     <div class="header-actions">
-      <button class="btn-primary">
+      <button (click)="fetchUsuarios()" class="btn-reload" [class.spinning]="isLoading()" title="Recargar">
+        <span class="material-symbols-outlined">refresh</span>
+      </button>
+      <button (click)="abrirCrear()" class="btn-primary">
         <span class="material-symbols-outlined">person_add</span>
         Añadir Usuario
       </button>
@@ -24,7 +27,7 @@
             <span class="material-symbols-outlined filter-icon">filter_alt</span>
             <select (change)="updateRole($event)" class="filter-select">
                 <option value="ALL">Todos los Roles</option>
-                <option value="OWNER">Propietarios (Owners)</option>
+                <option value="OWNER">Propietarios</option>
                 <option value="INTERESTED">Interesados</option>
             </select>
         </div>
@@ -49,6 +52,13 @@
       <table>
         <thead>
           <tr>
+            <th class="checkbox-col">
+                <button (click)="toggleAll()" class="btn-checkbox">
+                    <span class="material-symbols-outlined">
+                        {{ isAllSelected() ? 'check_box' : 'check_box_outline_blank' }}
+                    </span>
+                </button>
+            </th>
             <th>Usuario</th>
             <th>Rol</th>
             <th>Ubicación</th>
@@ -57,8 +67,15 @@
           </tr>
         </thead>
         <tbody>
-          @for (user of filteredUsuarios(); track user._id) {
-            <tr>
+          @for (user of paginatedUsuarios(); track user._id) {
+            <tr [class.row-selected]="selectedIds().has(user._id!)">
+              <td class="checkbox-col">
+                  <button (click)="toggleSelection(user._id!)" class="btn-checkbox">
+                      <span class="material-symbols-outlined">
+                          {{ selectedIds().has(user._id!) ? 'check_box' : 'check_box_outline_blank' }}
+                      </span>
+                  </button>
+              </td>
               <td>
                 <div class="user-cell">
                   <div class="avatar-mini">
@@ -82,10 +99,10 @@
               <td>{{ user.email }}</td>
               <td>
                 <div class="action-buttons">
-                  <button class="btn-icon" title="Editar">
+                  <button (click)="abrirEditar(user)" class="btn-icon" title="Editar">
                     <span class="material-symbols-outlined">edit</span>
                   </button>
-                  <button class="btn-icon" title="Eliminar">
+                  <button (click)="confirmarEliminar(user._id!)" class="btn-icon" title="Eliminar">
                     <span class="material-symbols-outlined">delete</span>
                   </button>
                 </div>
@@ -103,6 +120,78 @@
           }
         </tbody>
       </table>
+
+      <!-- Pagination Footer -->
+      <div class="pagination-footer">
+        <div class="pagination-info">
+          Mostrando
+          <strong>{{ pageStart() }}–{{ pageEnd() }}</strong>
+          de <strong>{{ filteredUsuarios().length }}</strong> usuarios
+        </div>
+
+        <div class="pagination-controls">
+          <div class="page-size-selector">
+            <span>Filas:</span>
+            <select (change)="pageSize.set(+$any($event.target).value); currentPage.set(1)" class="page-size-select">
+              <option value="5"  [selected]="pageSize() === 5">5</option>
+              <option value="10" [selected]="pageSize() === 10">10</option>
+              <option value="20" [selected]="pageSize() === 20">20</option>
+            </select>
+          </div>
+
+          <div class="page-buttons">
+            <button (click)="prevPage()" [disabled]="currentPage() === 1" class="btn-page btn-page-arrow">
+              <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+
+            @for (page of pageNumbers(); track $index) {
+              @if (page === -1) {
+                <span class="page-ellipsis">…</span>
+              } @else {
+                <button
+                  (click)="goToPage(page)"
+                  class="btn-page"
+                  [class.active]="currentPage() === page">
+                  {{ page }}
+                </button>
+              }
+            }
+
+            <button (click)="nextPage()" [disabled]="currentPage() === totalPages()" class="btn-page btn-page-arrow">
+              <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Floating Bulk Actions Bar -->
+  @if (someSelected()) {
+    <div class="bulk-actions-overlay">
+        <div class="bulk-actions-bar">
+            <div class="selection-info">
+                <span class="count">{{ selectedIds().size }}</span>
+            </div>
+
+            <div class="bulk-buttons">
+                <button (click)="borrarSeleccionados()" class="btn-bulk-delete" title="Borrar selección">
+                    <span class="material-symbols-outlined">delete</span>
+                </button>
+                <button (click)="clearSelection()" class="btn-bulk-cancel">
+                    <span class="material-symbols-outlined">close</span>
+                    Cancelar
+                </button>
+            </div>
+        </div>
     </div>
   }
 </div>
+
+<!-- Drawer: Crear / Editar Usuario -->
+<app-usuario-form
+  [isOpen]="drawerOpen()"
+  [usuario]="drawerUsuario()"
+  (saved)="onUsuarioGuardado($event)"
+  (closed)="cerrarDrawer()">
+</app-usuario-form>
