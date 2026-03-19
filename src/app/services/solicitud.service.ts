@@ -21,5 +21,10 @@ export class SolicitudService {
   // Actualizar el estado de una solicitud
   updateStatus(id: string, status: string): Observable<any> {
   return this.http.patch(`${this.API_URL}/${id}/status`, { status });
-}
+  }
+
+  crearSolicitud(data: { opportunityId: string, message: string }): Observable<Solicitud> {
+    return this.http.post<Solicitud>(this.API_URL, data);
+  }
+
 }

@@ -1,57 +1,48 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SolicitudService } from '../../../services/solicitud.service';
+import { OfertaService } from '../../../services/oferta.service';
 import { Solicitud } from '../../../models/solicitud.model';
+import { Oferta } from '../../../models/oferta.model';
 import { SearchInputComponent } from '../../shared/search-input/search-input.component';
+import { UsuarioService } from '../../../services/usuario.service';
 
 @Component({
-  selector: 'app-solicitudes-list',
+  selector: 'app-solicitudes-admin',
   standalone: true,
-  imports: [CommonModule, SearchInputComponent],
+  imports: [CommonModule, ReactiveFormsModule, SearchInputComponent],
   templateUrl: './solicitudes-list.html',
   styleUrl: './solicitudes-list.css',
 })
-export class SolicitudesList implements OnInit {
+export class SolicitudesComponent implements OnInit {
   private solicitudService = inject(SolicitudService);
+  private ofertaService = inject(OfertaService);
+  private fb = inject(FormBuilder);
+  private usuarioService = inject(UsuarioService);
 
-  // --- BASE DATA SIGNALS ---
+  // Formulario de nueva solicitud
+  solicitudForm: FormGroup = this.fb.group({
+    interestedUserId: ['', Validators.required],
+    opportunityId: ['', Validators.required],
+    message: ['']
+  });
+
+  // Base data signals
   solicitudes = signal<Solicitud[]>([]);
+  usuarios = signal<any[]>([]);
+  ofertas = signal<Oferta[]>([]); // Para el select del formulario
   isLoading = signal<boolean>(true);
   error = signal<string | null>(null);
 
-  // --- FILTER SIGNALS ---
+  // Filter signals
   searchQuery = signal<string>('');
-  statusFilter = signal<string>('ALL'); // Filtro por estado: PENDING, ACCEPTED, REJECTED
+  estadoFilter = signal<string>('ALL'); // PENDING, ACCEPTED, REJECTED, ALL
 
-  // --- SELECTION SIGNALS ---
+  // SELECTION SIGNALS
   selectedIds = signal<Set<string>>(new Set());
 
-  // --- PAGINACIÓN ---
-  currentPage = signal<number>(1);
-  pageSize = signal<number>(10);
-
-  // --- COMPUTEDS ---
-
-  // 1. Filtrado de solicitudes (por email del interesado, descripción de oferta o estado)
-  filteredSolicitudes = computed(() => {
-    const query = this.searchQuery().toLowerCase().trim();
-    const filter = this.statusFilter();
-    const all = this.solicitudes();
-
-    return all.filter(s => {
-      const matchesStatus = filter === 'ALL' || s.status === filter;
-      
-      // Buscamos en el email del interesado o en la descripción de la oportunidad
-      const matchesSearch = !query || 
-        s.interestedUser?.email.toLowerCase().includes(query) ||
-        s.opportunity?.companyDescription.toLowerCase().includes(query) ||
-        s.message?.toLowerCase().includes(query);
-
-      return matchesStatus && matchesSearch;
-    });
-  });
-
-  // 2. Lógica de selección masiva
+  // COMPUTEDS
   isAllSelected = computed(() => {
     const visible = this.paginatedSolicitudes();
     if (visible.length === 0) return false;
@@ -60,7 +51,34 @@ export class SolicitudesList implements OnInit {
 
   someSelected = computed(() => this.selectedIds().size > 0);
 
-  // 3. Datos paginados finales
+  filteredSolicitudes = computed(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    const filter = this.estadoFilter();
+    const all = this.solicitudes();
+
+    if (!query && filter === 'ALL') {
+      return all;
+    }
+
+    return all.filter(s => {
+      const matchesEstado = filter === 'ALL' || s.status === filter;
+      const empresa = s.opportunity?.companyDescription?.toLowerCase() || '';
+      const mensaje = s.message?.toLowerCase() || '';
+      const email = s.interestedUser?.email?.toLowerCase() || '';
+      
+      const matchesSearch = !query || 
+        empresa.includes(query) || 
+        mensaje.includes(query) ||
+        email.includes(query);
+
+      return matchesEstado && matchesSearch;
+    });
+  });
+
+  // PAGINACIÓN
+  currentPage = signal<number>(1);
+  pageSize = signal<number>(10);
+
   paginatedSolicitudes = computed(() => {
     const all = this.filteredSolicitudes();
     const page = this.currentPage();
@@ -72,10 +90,24 @@ export class SolicitudesList implements OnInit {
     Math.max(1, Math.ceil(this.filteredSolicitudes().length / this.pageSize()))
   );
 
-  // --- MÉTODOS DE DATOS ---
+  pageNumbers = computed(() => {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const result: number[] = [1];
+    if (current > 3) result.push(-1);
+    const start = Math.max(2, current - 1);
+    const end = Math.min(total - 1, current + 1);
+    for (let i = start; i <= end; i++) result.push(i);
+    if (current < total - 2) result.push(-1);
+    result.push(total);
+    return result;
+  });
 
   ngOnInit(): void {
     this.fetchSolicitudes();
+    this.fetchOfertas();
+    this.fetchUsuarios();
   }
 
   fetchSolicitudes(): void {
@@ -87,44 +119,92 @@ export class SolicitudesList implements OnInit {
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Error fetching requests:', err);
+        console.error('Error fetching solicitudes:', err);
         this.error.set('Error cargando solicitudes.');
         this.isLoading.set(false);
       }
     });
   }
 
-  cambiarEstado(id: string, nuevoEstado: 'ACCEPTED' | 'REJECTED'): void {
-  // 1. Llamada al servicio (Backend)
-  this.solicitudService.updateStatus(id, nuevoEstado).subscribe({
-    next: (solicitudActualizada) => {
-      // 2. Si el backend responde OK, actualizamos el Signal localmente
-      // Esto evita tener que recargar toda la lista (más rápido)
-      this.solicitudes.update(listaActual => 
-        listaActual.map(s => s._id === id ? { ...s, status: nuevoEstado } : s)
-      );
-      console.log('Estado persistido en BBDD:', solicitudActualizada);
-    },
-    error: (err) => {
-      console.error('Error al persistir en BBDD:', err);
-      alert('No se pudo guardar el cambio en el servidor.');
-    }
-  });
+  fetchOfertas(): void {
+    this.ofertaService.getOfertas().subscribe({
+      next: (data) => this.ofertas.set(data),
+      error: (err) => console.error('Error fetching ofertas para el select:', err)
+    });
   }
 
-  // --- MÉTODOS AUXILIARES (UI) ---
+  fetchUsuarios(): void {
+    this.usuarioService.getUsuarios().subscribe({
+      next: (data) => this.usuarios.set(data),
+      error: (err) => console.error('Error fetching usuarios:', err)
+    });
+  }
 
+  // ENVIAR NUEVA SOLICITUD
+  onSubmit(): void {
+    if (this.solicitudForm.valid) {
+      const formData = this.solicitudForm.value;
+      
+      this.solicitudService.crearSolicitud(formData).subscribe({
+        next: (nuevaSolicitud) => {
+          // Añadimos al principio de la lista actualizando el signal
+          this.solicitudes.update(actuales => [nuevaSolicitud, ...actuales]);
+          this.solicitudForm.reset({ opportunityId: '', message: '' });
+        },
+        error: (err) => {
+          console.error('Error al crear solicitud:', err);
+          alert('Hubo un error al enviar la solicitud');
+        }
+      });
+    }
+  }
+
+  // ACCIONES DE LA TABLA (Aceptar / Rechazar)
+  actualizarEstado(id: string, nuevoEstado: string): void {
+    this.solicitudService.updateStatus(id, nuevoEstado).subscribe({
+      next: (solicitudActualizada) => {
+        this.solicitudes.update(actuales => 
+          actuales.map(s => s._id === id ? { ...s, status: nuevoEstado } : s)
+        );
+      },
+      error: (err) => {
+        console.error('Error actualizando estado:', err);
+        alert('No se pudo actualizar el estado.');
+      }
+    });
+  }
+
+  // --- MÉTODOS DE BÚSQUEDA Y PAGINACIÓN ---
   updateSearch(query: string): void {
     this.searchQuery.set(query);
     this.currentPage.set(1);
   }
 
-  updateStatusFilter(event: Event): void {
+  updateEstadoFilter(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
-    this.statusFilter.set(value);
+    this.estadoFilter.set(value);
     this.currentPage.set(1);
   }
 
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+    }
+  }
+
+  prevPage(): void { this.goToPage(this.currentPage() - 1); }
+  nextPage(): void { this.goToPage(this.currentPage() + 1); }
+
+  pageStart(): number {
+    if (this.filteredSolicitudes().length === 0) return 0;
+    return (this.currentPage() - 1) * this.pageSize() + 1;
+  }
+
+  pageEnd(): number {
+    return Math.min(this.currentPage() * this.pageSize(), this.filteredSolicitudes().length);
+  }
+
+  // --- MÉTODOS DE SELECCIÓN ---
   toggleSelection(id: string): void {
     this.selectedIds.update(prev => {
       const next = new Set(prev);
@@ -150,21 +230,4 @@ export class SolicitudesList implements OnInit {
   clearSelection(): void {
     this.selectedIds.set(new Set());
   }
-
-  // Paginación simple
-  goToPage(page: number): void {
-    if (page >= 1 && page <= this.totalPages()) {
-      this.currentPage.set(page);
-    }
-  }
-
-  pageStart(): number {
-    return (this.currentPage() - 1) * this.pageSize() + 1;
-  }
-
-  pageEnd(): number {
-    return Math.min(this.currentPage() * this.pageSize(), this.filteredSolicitudes().length);
-  }
 }
-
-

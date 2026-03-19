@@ -13,7 +13,7 @@ import { AdminLayoutComponent } from './components/admin/admin-layout/admin-layo
 import { DashboardComponent } from './components/admin/dashboard/dashboard.component';
 import { Usuarios as AdminUsuariosComponent } from './components/admin/usuarios/usuarios';
 import { Ofertas as OfertasAdminComponent } from './components/admin/ofertas/ofertas';
-import { SolicitudesList } from './components/admin/solicitudes/solicitudes-list';
+import { SolicitudesComponent } from './components/admin/solicitudes/solicitudes-list';
 
 export const routes: Routes = [
   // --- MUNDO PÚBLICO ---
@@ -27,6 +27,7 @@ export const routes: Routes = [
       { path: 'ofertas/:id', component: OfertaDetalle },
       { path: 'usuarios', component: UsuariosListComponent },
       { path: 'perfil', component: PerfilComponent },
+      
     ]
   },
 
@@ -38,7 +39,7 @@ export const routes: Routes = [
       { path: 'dashboard', component: DashboardComponent },
       { path: 'usuarios', component: AdminUsuariosComponent },
       { path: 'ofertas', component: OfertasAdminComponent },
-      { path: 'solicitudes', component: SolicitudesList },
+      { path: 'solicitudes', component: SolicitudesComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

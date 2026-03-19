@@ -11,6 +11,57 @@
     </div>
   </div>
 
+  <div class="filters-bar" style="margin-bottom: 24px; padding: 20px; background: white; border-radius: 8px; border: 1px solid #eaeaea;">
+    <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 1.1rem; color: #333;">Añadir Nueva Solicitud</h3>
+    <form [formGroup]="solicitudForm" (ngSubmit)="onSubmit()" style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+      
+      <div style="flex: 1; min-width: 200px;">
+        <label for="interestedUser" style="display: block; margin-bottom: 6px; font-size: 0.85rem; color: #666;">Usuario Interesado</label>
+        <select 
+          id="interestedUser" 
+          formControlName="interestedUserId"
+          class="filter-select"
+          style="width: 100%; border: 1px solid #ccc; padding: 8px 12px; border-radius: 4px;">
+          <option value="" disabled selected>Selecciona un usuario...</option>
+          @for (user of usuarios(); track user._id) {
+            <option [value]="user._id">{{ user.email }}</option>
+          }
+        </select>
+      </div>
+
+      <div style="flex: 1; min-width: 200px;">
+        <label for="opportunity" style="display: block; margin-bottom: 6px; font-size: 0.85rem; color: #666;">Oferta (Empresa)</label>
+        <select 
+          id="opportunity" 
+          formControlName="opportunityId"
+          class="filter-select"
+          style="width: 100%; border: 1px solid #ccc; padding: 8px 12px; border-radius: 4px;">
+          <option value="" disabled selected>Selecciona una oferta...</option>
+          @for (oferta of ofertas(); track oferta._id) {
+            <option [value]="oferta._id">{{ oferta.companyDescription }}</option>
+          }
+        </select>
+      </div>
+
+      <div style="flex: 2; min-width: 250px;">
+        <label for="message" style="display: block; margin-bottom: 6px; font-size: 0.85rem; color: #666;">Mensaje</label>
+        <input 
+          type="text" 
+          id="message" 
+          formControlName="message" 
+          placeholder="Escribe un mensaje de interés..."
+          style="width: 100%; border: 1px solid #ccc; padding: 8px 12px; border-radius: 4px; outline: none;">
+      </div>
+
+      <div>
+        <button type="submit" class="btn-primary" [disabled]="solicitudForm.invalid" style="height: 38px;">
+          <span class="material-symbols-outlined">send</span>
+          Enviar
+        </button>
+      </div>
+    </form>
+  </div>
+
   <div class="filters-bar">
     <app-search-input 
       [placeholder]="'Buscar por email, mensaje o empresa...'"
@@ -19,8 +70,8 @@
 
     <div class="specific-filters">
         <div class="filter-group">
-            <span class="material-symbols-outlined filter-icon">filter_list</span>
-            <select (change)="updateStatusFilter($event)" class="filter-select">
+            <span class="material-symbols-outlined filter-icon">filter_alt</span>
+            <select (change)="updateEstadoFilter($event)" class="filter-select">
                 <option value="ALL">Todos los Estados</option>
                 <option value="PENDING">Pendientes</option>
                 <option value="ACCEPTED">Aceptadas</option>
@@ -57,7 +108,7 @@
             <th>Oportunidad</th>
             <th>Mensaje</th>
             <th>Estado</th>
-            <th>Acciones</th>
+            <th style="text-align: right;">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -72,39 +123,46 @@
               </td>
               <td>
                 <div class="user-cell">
-                  <div class="avatar-mini">
-                    {{ s.interestedUser?.nombre?.charAt(0) || 'U' }}
+                  <div class="avatar-mini" style="background-color: #0047FF; color: white;">
+                    {{ s.interestedUser?.email?.charAt(0) | uppercase }}
                   </div>
                   <div class="user-info-text">
-                    <span class="name">{{ s.interestedUser?.nombre }}</span>
-                    <span class="bio-snippet">{{ s.interestedUser?.email }}</span>
+                    <span class="name">{{ s.interestedUser?.email || 'Usuario' }}</span>
                   </div>
                 </div>
               </td>
               <td>
-                <div class="opportunity-cell">
-                  <span class="company-name">{{ s.opportunity?.companyDescription | slice:0:30 }}...</span>
-                </div>
+                <span style="font-weight: 500;">{{ s.opportunity?.companyDescription }}</span>
               </td>
               <td class="text-muted">
-                <span [title]="s.message">{{ s.message ? (s.message | slice:0:40) + '...' : 'Sin mensaje' }}</span>
+                @if (s.message && s.message.length > 40) {
+                    {{ (s.message | slice:0:40) }}...
+                  } @else {
+                    {{ s.message || 'Sin mensaje' }}
+                  }
               </td>
               <td>
-                <span class="badge" [ngClass]="'badge-' + s.status.toLowerCase()">
-                  {{ s.status }}
-                </span>
+                @if (s.status === 'PENDING') {
+                  <span style="background: #FFF4E5; color: #B35F00; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">PENDING</span>
+                } @else if (s.status === 'ACCEPTED') {
+                  <span style="background: #E6F4EA; color: #1E8E3E; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">ACCEPTED</span>
+                } @else if (s.status === 'REJECTED') {
+                  <span style="background: #FCE8E6; color: #D93025; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">REJECTED</span>
+                } @else {
+                  <span>{{ s.status }}</span>
+                }
               </td>
               <td>
-                <div class="action-buttons">
+                <div class="action-buttons" style="justify-content: flex-end;">
                   @if (s.status === 'PENDING') {
-                    <button (click)="cambiarEstado(s._id!, 'ACCEPTED')" class="btn-icon btn-confirm" title="Aceptar">
+                    <button (click)="actualizarEstado(s._id!, 'ACCEPTED')" class="btn-icon" title="Aceptar" style="color: #1E8E3E;">
                       <span class="material-symbols-outlined">check_circle</span>
                     </button>
-                    <button (click)="cambiarEstado(s._id!, 'REJECTED')" class="btn-icon btn-cancel" title="Rechazar">
+                    <button (click)="actualizarEstado(s._id!, 'REJECTED')" class="btn-icon" title="Rechazar" style="color: #D93025;">
                       <span class="material-symbols-outlined">cancel</span>
                     </button>
                   } @else {
-                    <span class="text-small text-muted">Completado</span>
+                    <span style="font-size: 0.85rem; color: #666;">Completado</span>
                   }
                 </div>
               </td>
@@ -113,8 +171,8 @@
             <tr>
               <td colspan="6">
                 <div class="empty-state">
-                  <span class="material-symbols-outlined">mail_lock</span>
-                  <p>No se han encontrado solicitudes con estos criterios.</p>
+                  <span class="material-symbols-outlined">search_off</span>
+                  <p>No se han encontrado solicitudes que coincidan con la búsqueda.</p>
                 </div>
               </td>
             </tr>
@@ -140,13 +198,24 @@
           </div>
 
           <div class="page-buttons">
-            <button (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1" class="btn-page btn-page-arrow">
+            <button (click)="prevPage()" [disabled]="currentPage() === 1" class="btn-page btn-page-arrow">
               <span class="material-symbols-outlined">chevron_left</span>
             </button>
 
-            <button class="btn-page active">{{ currentPage() }}</button>
+            @for (page of pageNumbers(); track $index) {
+              @if (page === -1) {
+                <span class="page-ellipsis">…</span>
+              } @else {
+                <button
+                  (click)="goToPage(page)"
+                  class="btn-page"
+                  [class.active]="currentPage() === page">
+                  {{ page }}
+                </button>
+              }
+            }
 
-            <button (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()" class="btn-page btn-page-arrow">
+            <button (click)="nextPage()" [disabled]="currentPage() === totalPages()" class="btn-page btn-page-arrow">
               <span class="material-symbols-outlined">chevron_right</span>
             </button>
           </div>
@@ -159,11 +228,16 @@
     <div class="bulk-actions-overlay">
         <div class="bulk-actions-bar">
             <div class="selection-info">
-                <span class="count">{{ selectedIds().size }}</span> seleccionadas
+                <span class="count">{{ selectedIds().size }}</span>
             </div>
+
             <div class="bulk-buttons">
+                <button class="btn-bulk-delete" title="Borrar selección">
+                    <span class="material-symbols-outlined">delete</span>
+                </button>
                 <button (click)="clearSelection()" class="btn-bulk-cancel">
-                    <span class="material-symbols-outlined">close</span> Cancelar
+                    <span class="material-symbols-outlined">close</span>
+                    Cancelar
                 </button>
             </div>
         </div>
