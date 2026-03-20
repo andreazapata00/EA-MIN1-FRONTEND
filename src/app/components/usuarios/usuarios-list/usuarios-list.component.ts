@@ -23,8 +23,9 @@ export class UsuariosListComponent implements OnInit {
   cargarUsuarios() {
     this.usuarioService.getUsuarios().subscribe({
       next: (datosDelServidor) => {
-        this.usuarios = datosDelServidor;
-        console.log('¡Usuarios recibidos de Mongo!', this.usuarios);
+        // Filtramos para mostrar solo los usuarios visibles
+        this.usuarios = datosDelServidor.filter(u => u.visible !== false);
+        console.log('¡Usuarios recibidos de Mongo (filtrados)!', this.usuarios);
         this.cdr.detectChanges();
       },
       error: (error) => {

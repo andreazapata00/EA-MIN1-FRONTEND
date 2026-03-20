@@ -135,7 +135,11 @@ export class SolicitudesComponent implements OnInit {
 
   fetchUsuarios(): void {
     this.usuarioService.getUsuarios().subscribe({
-      next: (data) => this.usuarios.set(data),
+      next: (data) => {
+        // Filtrar solo usuarios visibles
+        const visibles = data.filter(u => u.visible !== false);
+        this.usuarios.set(visibles);
+      },
       error: (err) => console.error('Error fetching usuarios:', err)
     });
   }

@@ -76,7 +76,11 @@ export class OfertaFormComponent implements OnInit {
 
   cargarUsuarios(): void {
     this.usuarioService.getUsuarios().subscribe({
-      next: (data) => this.usuarios.set(data),
+      next: (data) => {
+        // Filtramos para que solo salgan usuarios visibles (o que no tengan el campo visible, asumiendo true)
+        const visibles = data.filter(u => u.visible !== false);
+        this.usuarios.set(visibles);
+      },
       error: (err) => console.error('Error cargando usuarios:', err)
     });
   }
