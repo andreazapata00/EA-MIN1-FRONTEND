@@ -14,6 +14,7 @@ import { DashboardComponent } from './components/admin/dashboard/dashboard.compo
 import { Usuarios as AdminUsuariosComponent } from './components/admin/usuarios/usuarios';
 import { Ofertas as OfertasAdminComponent } from './components/admin/ofertas/ofertas';
 import { SolicitudesComponent } from './components/admin/solicitudes/solicitudes-list';
+import { HistorialComponent } from './components/admin/historial/historial';
 
 export const routes: Routes = [
   // --- MUNDO PÚBLICO ---
@@ -40,6 +41,7 @@ export const routes: Routes = [
       { path: 'usuarios', component: AdminUsuariosComponent },
       { path: 'ofertas', component: OfertasAdminComponent },
       { path: 'solicitudes', component: SolicitudesComponent },
+      { path: 'historials', component: HistorialComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },
